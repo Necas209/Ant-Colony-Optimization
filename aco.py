@@ -22,7 +22,7 @@ class ACO:
     cities: list[str]
     alpha: float = 1.0
     beta: float = 1.0
-    rho: float = 0.5
+    decay: float = 0.95
     q: float = 1.0
     num_ants: int = 10
     num_iterations: int = 100
@@ -39,6 +39,8 @@ class ACO:
         for i in range(self.num_iterations):
             self.run_iteration()
             self.update_pheromones()
+            if i % 10 == 0:
+                print(f'Iteration {i}: {self.best_path_distance}')
 
     def run_iteration(self) -> None:
         for ant in range(self.num_ants):
@@ -52,7 +54,7 @@ class ACO:
         path = np.zeros(self.num_cities, dtype=np.int32)
         path[0] = np.random.randint(self.num_cities)
         for i in range(1, self.num_cities):
-            path[i] = self.select_next_city(path)
+            path[i] = self.select_next_city(path[:i])
         return path
 
     def select_next_city(self, path: NDArray[np.int32]) -> int:
@@ -65,6 +67,8 @@ class ACO:
         probabilities = np.zeros(self.num_cities)
         for city in unvisited_cities:
             probabilities[city] = self.calculate_probability(current_city, city)
+        probabilities = probabilities[unvisited_cities]
+        probabilities /= np.sum(probabilities)
         return probabilities
 
     def calculate_probability(self, current_city: int, next_city: int) -> float:
@@ -78,7 +82,7 @@ class ACO:
         return distance
 
     def update_pheromones(self) -> None:
-        self.pheromones *= self.rho
+        self.pheromones *= self.decay
         for ant in range(self.num_ants):
             for i in range(self.num_cities - 1):
                 self.pheromones[i][i + 1] += self.q / self.calculate_path_distance(self.best_path)

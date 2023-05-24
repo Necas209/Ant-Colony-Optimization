@@ -1,4 +1,5 @@
 from aco import ACO, load_distances
+from aco2 import AntColony
 
 
 def main():

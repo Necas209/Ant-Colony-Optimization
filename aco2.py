@@ -31,13 +31,14 @@ class AntColony:
         self.beta = beta
 
     def run(self):
-        shortest_path: tuple[Any, int] = ("placeholder", np.inf)
+        shortest_path: tuple[Any, int] = None
         all_time_shortest_path: tuple[Any, int] = ("placeholder", np.inf)
         for i in range(self.n_iterations):
             all_paths = self.gen_all_paths()
             self.spread_pheronome(all_paths, self.n_best, shortest_path=shortest_path)
             shortest_path: tuple[list, int] = min(all_paths, key=lambda x: x[1])
-            print(shortest_path)
+            if i % 100 == 0:
+                print(shortest_path)
             if shortest_path[1] < all_time_shortest_path[1]:
                 all_time_shortest_path = shortest_path
             self.pheromone = self.pheromone * self.decay
