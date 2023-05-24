@@ -12,6 +12,7 @@ def main():
         num_iterations=500,
     )
     aco.run()
+    aco.print_results()
 
 
 if __name__ == '__main__':
