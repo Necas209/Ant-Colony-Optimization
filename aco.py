@@ -16,10 +16,13 @@ def load_distances(path: AnyPath) -> NDArray[np.int32]:
     return arr
 
 
+AntPath = NDArray[np.int32]
+
+
 @dataclass
 class ACO:
     distances: NDArray[np.int32]
-    cities: list[str]
+    cities: NDArray[str]
     alpha: float = 1.0
     beta: float = 1.0
     decay: float = 0.95
@@ -27,8 +30,9 @@ class ACO:
     num_ants: int = 10
     num_iterations: int = 100
     num_cities: int = 10
+    print_frequency: int = 10
     pheromones: NDArray[np.float32] = None
-    best_path: NDArray[np.int32] = None
+    best_path: AntPath = None
     best_path_distance: float = np.inf
 
     def __post_init__(self) -> None:
@@ -39,7 +43,7 @@ class ACO:
         for i in range(self.num_iterations):
             self.run_iteration()
             self.update_pheromones()
-            if i % 10 == 0:
+            if i % self.print_frequency == 0:
                 print(f'Iteration {i}: {self.best_path_distance}')
 
     def run_iteration(self) -> None:
@@ -50,14 +54,14 @@ class ACO:
                 self.best_path_distance = distance
                 self.best_path = path
 
-    def generate_path(self) -> NDArray[np.int32]:
+    def generate_path(self) -> AntPath:
         path = np.zeros(self.num_cities, dtype=np.int32)
         path[0] = np.random.randint(self.num_cities)
         for i in range(1, self.num_cities):
             path[i] = self.select_next_city(path[:i])
         return path
 
-    def select_next_city(self, path: NDArray[np.int32]) -> int:
+    def select_next_city(self, path: AntPath) -> int:
         current_city = path[-1]
         unvisited_cities = np.delete(np.arange(self.num_cities), path)
         next_city = np.random.choice(unvisited_cities, p=self.calculate_probabilities(current_city, unvisited_cities))
@@ -75,7 +79,7 @@ class ACO:
         return self.pheromones[current_city][next_city] ** self.alpha * \
             (1.0 / self.distances[current_city][next_city]) ** self.beta
 
-    def calculate_path_distance(self, path: NDArray[np.int32]) -> float:
+    def calculate_path_distance(self, path: AntPath) -> float:
         distance = 0
         for i in range(self.num_cities - 1):
             distance += self.distances[path[i]][path[i + 1]]
@@ -90,6 +94,7 @@ class ACO:
 
     def print_results(self) -> None:
         print('Best path:', self.best_path)
+        print('Best path (cities):', self.cities[self.best_path])
         print('Best path distance:', self.best_path_distance)
         print('Pheromones:')
         print(self.pheromones)
