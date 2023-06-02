@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass
+from functools import cached_property
 
 import numpy as np
 from numpy.typing import NDArray
@@ -29,7 +30,6 @@ class ACO:
     q: float = 1.0
     num_ants: int = 10
     num_iterations: int = 100
-    num_cities: int = 10
     print_frequency: int = 10
     pheromones: NDArray[np.float32] = None
     best_path: AntPath = None
@@ -38,6 +38,10 @@ class ACO:
     def __post_init__(self) -> None:
         self.best_path = np.zeros(self.num_cities, dtype=np.int32)
         self.pheromones = np.ones((self.num_cities, self.num_cities))
+
+    @cached_property
+    def num_cities(self) -> int:
+        return len(self.cities)
 
     def run(self) -> None:
         for i in range(self.num_iterations):
@@ -80,7 +84,7 @@ class ACO:
             (1.0 / self.distances[current_city][next_city]) ** self.beta
 
     def calculate_path_distance(self, path: AntPath) -> float:
-        distance = 0
+        distance = 0.0
         for i in range(self.num_cities - 1):
             distance += self.distances[path[i]][path[i + 1]]
         return distance
